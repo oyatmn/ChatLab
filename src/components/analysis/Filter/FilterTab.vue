@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * 自定义筛选 Tab
- * 用于精准提取聊天记录上下文，供 AI 分析使用
+ * 用于精准提取聊天记录上下文
  *
  * 支持两种互斥的筛选模式：
  * 1. 条件筛选：按关键词、时间、发送者筛选，并自动扩展上下文
@@ -18,7 +18,6 @@ import ConditionPanel from './ConditionPanel.vue'
 import SessionPanel from './SessionPanel.vue'
 import PreviewPanel from './PreviewPanel.vue'
 import FilterHistory from './FilterHistory.vue'
-import LocalAnalysisModal from './LocalAnalysisModal.vue'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -88,27 +87,9 @@ const filterResult = ref<{
 const isFiltering = ref(false)
 const isLoadingMore = ref(false)
 const showHistory = ref(false)
-const showAnalysisModal = ref(false)
 
 // 每页块数
 const PAGE_SIZE = 50
-
-// 估算 Token 数
-// 中文：1 字符 ≈ 1.5 token（因为中文分词后每个字符可能产生 1-2 个 token）
-// 考虑到消息格式（时间、发送人等），使用 1.5 作为估算系数
-const estimatedTokens = computed(() => {
-  if (!filterResult.value) return 0
-  return Math.ceil(filterResult.value.stats.totalChars * 1.5)
-})
-
-// Token 状态：green < 50000, yellow 50000-100000, red > 100000
-// （基于大多数模型的上下文窗口大小）
-const tokenStatus = computed(() => {
-  const tokens = estimatedTokens.value
-  if (tokens < 50000) return 'green'
-  if (tokens < 100000) return 'yellow'
-  return 'red'
-})
 
 // 是否可以执行筛选
 const canExecuteFilter = computed(() => {
@@ -324,12 +305,6 @@ async function exportFeedPack() {
   }
 }
 
-// 打开本地 AI 分析
-function openLocalAnalysis() {
-  if (!filterResult.value || filterResult.value.blocks.length === 0) return
-  showAnalysisModal.value = true
-}
-
 // 切换模式时清空结果
 watch(filterMode, () => {
   filterResult.value = null
@@ -423,8 +398,6 @@ function loadHistoryCondition(condition: {
           :result="filterResult"
           :is-loading="isFiltering"
           :is-loading-more="isLoadingMore"
-          :estimated-tokens="estimatedTokens"
-          :token-status="tokenStatus"
           @load-more="loadMoreBlocks"
         />
 
@@ -457,9 +430,6 @@ function loadHistoryCondition(condition: {
             >
               {{ t('analysis.filter.export') }}
             </UButton>
-            <UButton color="primary" icon="i-heroicons-sparkles" @click="openLocalAnalysis">
-              {{ t('analysis.filter.localAnalysis') }}
-            </UButton>
           </div>
         </div>
       </div>
@@ -467,8 +437,5 @@ function loadHistoryCondition(condition: {
 
     <!-- 历史记录弹窗 -->
     <FilterHistory v-model:open="showHistory" @load="loadHistoryCondition" />
-
-    <!-- 本地 AI 分析弹窗 -->
-    <LocalAnalysisModal v-model:open="showAnalysisModal" :filter-result="filterResult" :filter-mode="filterMode" />
   </div>
 </template>

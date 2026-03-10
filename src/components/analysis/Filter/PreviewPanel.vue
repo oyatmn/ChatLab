@@ -55,8 +55,6 @@ const props = defineProps<{
   } | null
   isLoading: boolean
   isLoadingMore?: boolean
-  estimatedTokens: number
-  tokenStatus: 'green' | 'yellow' | 'red'
 }>()
 
 // Emits
@@ -100,25 +98,6 @@ const blockVirtualizer = useVirtualizer(
 )
 
 const virtualBlocks = computed(() => blockVirtualizer.value.getVirtualItems())
-
-// Token 进度条颜色
-const tokenProgressColor = computed(() => {
-  switch (props.tokenStatus) {
-    case 'green':
-      return 'bg-green-500'
-    case 'yellow':
-      return 'bg-yellow-500'
-    case 'red':
-      return 'bg-red-500'
-    default:
-      return 'bg-gray-400'
-  }
-})
-
-// Token 进度百分比（最大 100000）
-const tokenProgressPercent = computed(() => {
-  return Math.min((props.estimatedTokens / 100000) * 100, 100)
-})
 
 // 当前块的消息列表（使用反转后的索引）
 const currentBlockMessages = computed<ChatRecordMessage[]>(() => {
@@ -298,39 +277,6 @@ function handleBlockListScroll(event: Event) {
             </span>
           </span>
         </div>
-      </div>
-
-      <!-- Token 预估进度条 -->
-      <div class="flex items-center gap-3">
-        <span class="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-          {{ t('analysis.filter.stats.tokens') }}:
-          <span
-            class="font-medium"
-            :class="{
-              'text-green-600': tokenStatus === 'green',
-              'text-yellow-600': tokenStatus === 'yellow',
-              'text-red-600': tokenStatus === 'red',
-            }"
-          >
-            ~{{ estimatedTokens.toLocaleString() }}
-          </span>
-        </span>
-        <div class="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-          <div
-            class="h-full rounded-full transition-all duration-300"
-            :class="tokenProgressColor"
-            :style="{ width: `${tokenProgressPercent}%` }"
-          />
-        </div>
-        <span class="text-xs text-gray-500 whitespace-nowrap">10K</span>
-      </div>
-
-      <!-- Token 状态提示 -->
-      <div v-if="tokenStatus === 'yellow'" class="mt-2 text-xs text-yellow-600 dark:text-yellow-400">
-        {{ t('analysis.filter.tokenWarning.yellow') }}
-      </div>
-      <div v-if="tokenStatus === 'red'" class="mt-2 text-xs text-red-600 dark:text-red-400">
-        {{ t('analysis.filter.tokenWarning.red') }}
       </div>
     </div>
 

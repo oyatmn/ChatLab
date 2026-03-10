@@ -111,7 +111,6 @@
     "history": "历史记录",
     "execute": "开始筛选",
     "export": "导出筛选结果",
-    "localAnalysis": "AI 分析",
     "keywords": "关键词",
     "keywordsHint": "支持多个关键词，OR 逻辑匹配",
     "keywordPlaceholder": "输入关键词，回车添加",
@@ -141,27 +140,12 @@
       "blocks": "对话块",
       "messages": "消息数",
       "hits": "命中数",
-      "chars": "字符数",
-      "tokens": "预估 Token"
-    },
-    "tokenWarning": {
-      "yellow": "Token 数量较多，可能影响 AI 分析效果",
-      "red": "Token 数量过多，建议缩小筛选范围"
+      "chars": "字符数"
     },
     "historyTitle": "筛选历史",
     "noHistory": "暂无历史记录",
-    "localAnalysisTitle": "AI 分析",
-    "presetAnalysis": "预设分析",
-    "customAnalysis": "自定义提问",
-    "customPromptPlaceholder": "输入你想问的问题...",
-    "editablePromptLabel": "提示词（可临时修改）",
-    "analyzing": "分析中...",
-    "startAnalysis": "开始分析",
-    "analysisResult": "分析结果",
     "loadMore": "加载更多",
     "allLoaded": "已加载全部",
-    "dataTooLarge": "数据量过大，无法进行 AI 分析。请缩小筛选范围。",
-    "dataTooLargeThreshold": "当前数据超过 {count} 条消息",
     "exportSuccess": "导出成功",
     "exportFailed": "导出失败",
     "exportPreparing": "正在准备导出..."

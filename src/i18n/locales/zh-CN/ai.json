@@ -3,7 +3,7 @@
     "chatExplorer": "对话式探索",
     "sqlLab": "SQL实验室",
     "filterAnalysis": "自定义筛选",
-    "filterAnalysisDesc": "计划实现高级筛选功能，可以先按人/按时间/按搜索内容手动筛选，然后再进行AI分析",
+    "filterAnalysisDesc": "支持按人/按时间/按搜索内容手动筛选聊天记录，并导出筛选结果",
     "featureInDev": "{name}功能开发中",
     "comingSoon": "敬请期待...",
     "followNotice": "功能上线通知，欢迎关注我的小红书"
