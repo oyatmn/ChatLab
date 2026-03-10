@@ -70,6 +70,14 @@ function handleConfigure(id: string) {
             @select="handleSelect"
             @configure="handleConfigure"
           />
+          <!-- 新增助手按钮 -->
+          <div
+            class="flex aspect-square w-[100px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 transition-all duration-200 hover:border-primary-400 hover:bg-primary-50/50 dark:border-gray-600 dark:hover:border-primary-500 dark:hover:bg-primary-950/20"
+            @click="emit('market')"
+          >
+            <UIcon name="i-heroicons-plus" class="mb-1 h-5 w-5 text-gray-400 dark:text-gray-500" />
+            <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('ai.assistant.selector.addNew') }}</span>
+          </div>
         </div>
       </div>
 

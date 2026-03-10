@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { storeToRefs } from 'pinia'
 import dayjs from 'dayjs'
 import { useToast } from '@nuxt/ui/runtime/composables/useToast.js'
-import { usePromptStore } from '@/stores/prompt'
-import { exportConversation, type ExportFormat } from '@/utils/conversationExport'
 
 const { t } = useI18n()
 const toast = useToast()
-const promptStore = usePromptStore()
-const { aiGlobalSettings } = storeToRefs(promptStore)
 
 interface Conversation {
   id: string
@@ -36,7 +31,6 @@ const emit = defineEmits<{
 // State
 const conversations = ref<Conversation[]>([])
 const isLoading = ref(false)
-const isExporting = ref<string | null>(null) // 正在导出的对话 ID
 const editingId = ref<string | null>(null)
 const editingTitle = ref('')
 const isCollapsed = ref(false)
@@ -105,87 +99,6 @@ async function handleDelete(convId: string) {
   }
 }
 
-// 导出对话
-async function handleExport(conv: Conversation) {
-  if (isExporting.value) return
-
-  isExporting.value = conv.id
-  try {
-    // 获取对话消息
-    const messages = await window.aiApi.getMessages(conv.id)
-
-    if (messages.length === 0) {
-      toast.add({
-        title: t('ai.chat.conversation.export.noMessages'),
-        icon: 'i-heroicons-exclamation-triangle',
-        color: 'warning',
-        duration: 2000,
-      })
-      return
-    }
-
-    // 获取导出格式和标题
-    const format = (aiGlobalSettings.value.exportFormat || 'markdown') as ExportFormat
-    const title = conv.title || t('ai.chat.conversation.newChat')
-
-    // 导出标签（国际化）
-    const labels = {
-      createdAt: t('ai.chat.conversation.export.createdAt'),
-      user: t('ai.chat.conversation.export.user'),
-      assistant: t('ai.chat.conversation.export.assistant'),
-    }
-
-    // 转换消息时间戳（数据库存储的是秒级时间戳，需转换为毫秒级）
-    const messagesWithMs = messages.map((msg) => ({
-      ...msg,
-      timestamp: msg.timestamp * 1000,
-    }))
-
-    // 调用导出工具
-    const result = await exportConversation(title, messagesWithMs, conv.createdAt * 1000, format, labels)
-
-    if (result.success && result.filePath) {
-      // 获取文件名
-      const filename = result.filePath.split('/').pop() || result.filePath
-      const exportedFilePath = result.filePath
-      // 显示成功 toast
-      toast.add({
-        title: t('common.exportSuccess'),
-        description: filename,
-        icon: 'i-heroicons-check-circle',
-        color: 'primary',
-        duration: 2000,
-        actions: [
-          {
-            label: t('common.openFolder'),
-            onClick: () => {
-              window.cacheApi.showInFolder(exportedFilePath)
-            },
-          },
-        ],
-      })
-    } else {
-      toast.add({
-        title: t('common.exportFailed'),
-        description: result.error,
-        icon: 'i-heroicons-x-circle',
-        color: 'error',
-        duration: 2000,
-      })
-    }
-  } catch (error) {
-    console.error('导出对话失败：', error)
-    toast.add({
-      title: t('common.exportFailed'),
-      description: String(error),
-      icon: 'i-heroicons-x-circle',
-      color: 'error',
-      duration: 2000,
-    })
-  } finally {
-    isExporting.value = null
-  }
-}
 
 // 初始化
 onMounted(() => {
@@ -212,18 +125,19 @@ defineExpose({
     :class="isCollapsed ? 'w-10' : 'w-64'"
   >
     <!-- 头部 -->
-    <div class="flex items-center justify-between border-b border-gray-200 p-2 dark:border-gray-800">
+    <div
+      class="flex items-center justify-between border-b border-gray-200 py-2 dark:border-gray-800"
+      :class="isCollapsed ? 'px-0' : 'pl-5 pr-2'"
+    >
       <template v-if="!isCollapsed">
         <span class="text-xs font-medium text-gray-500 dark:text-gray-400">{{ t('ai.chat.conversation.title') }}</span>
         <div class="flex items-center gap-1">
-          <UButton
-            icon="i-heroicons-plus"
-            color="gray"
-            variant="ghost"
-            size="xs"
-            class="text-gray-500 hover:text-gray-900 dark:hover:text-white"
+          <button
+            class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
             @click="emit('create')"
-          />
+          >
+            <UIcon name="i-heroicons-plus" class="h-4 w-4" />
+          </button>
           <button
             class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
             @click="isCollapsed = !isCollapsed"
@@ -323,18 +237,6 @@ defineExpose({
                       : 'bg-gray-50 group-hover:bg-gray-100 dark:bg-gray-900 dark:group-hover:bg-gray-800',
                   ]"
                 >
-                  <UButton
-                    :icon="isExporting === conv.id ? 'i-heroicons-arrow-path' : 'i-heroicons-arrow-down-tray'"
-                    color="gray"
-                    variant="ghost"
-                    size="2xs"
-                    :class="[
-                      isExporting === conv.id ? 'animate-spin' : '',
-                      'text-gray-400 hover:text-primary-500 dark:hover:text-primary-400',
-                    ]"
-                    :disabled="isExporting !== null"
-                    @click="handleExport(conv)"
-                  />
                   <UButton
                     icon="i-heroicons-pencil"
                     color="gray"

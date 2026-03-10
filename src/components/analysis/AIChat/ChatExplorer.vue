@@ -131,11 +131,6 @@ async function refreshConfig() {
   if (hasLLMConfig.value) {
     await updateMaxMessages()
   }
-  // 更新欢迎消息
-  const welcomeMsg = messages.value.find((m) => m.id.startsWith('welcome'))
-  if (welcomeMsg) {
-    welcomeMsg.content = generateWelcomeMessage()
-  }
 }
 
 // 暴露方法供父组件调用
@@ -143,18 +138,27 @@ defineExpose({
   refreshConfig,
 })
 
-// 生成欢迎消息
-function generateWelcomeMessage() {
-  const configHint = hasLLMConfig.value ? t('ai.chat.welcome.configReady') : t('ai.chat.welcome.configNeeded')
+const welcomeInfo = computed(() => {
+  const assistant = assistantStore.selectedAssistant
+  if (!assistant) return { name: '', preview: '' }
 
-  return t('ai.chat.welcome.message', { sessionName: props.sessionName, configHint })
-}
+  const preview = assistant.systemPrompt
+    .replace(/#{1,6}\s+[^\n]*/g, '')
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return { name: assistant.name, preview }
+})
+
+const showWelcomeCard = computed(() => {
+  return messages.value.length === 0 && !isAIThinking.value
+})
 
 // 选择助手
 function handleSelectAssistant(id: string) {
   assistantStore.selectAssistant(id)
   showAssistantSelector.value = false
-  startNewConversation(generateWelcomeMessage())
+  startNewConversation()
 }
 
 // 打开助手配置弹窗（可编辑）
@@ -283,14 +287,14 @@ async function handleSelectConversation(convId: string) {
 
 // 创建新对话
 function handleCreateConversation() {
-  startNewConversation(generateWelcomeMessage())
+  startNewConversation()
 }
 
 // 删除对话
 function handleDeleteConversation(convId: string) {
   // 如果删除的是当前对话，创建新对话
   if (currentConversationId.value === convId) {
-    startNewConversation(generateWelcomeMessage())
+    startNewConversation()
   }
 }
 
@@ -299,8 +303,7 @@ onMounted(async () => {
   await checkLLMConfig()
   await updateMaxMessages()
 
-  // 初始化欢迎消息
-  startNewConversation(generateWelcomeMessage())
+  startNewConversation()
 
   // 添加事件监听
   if (messagesContainer.value) {
@@ -387,21 +390,33 @@ watch(
       <div v-else key="chat" class="flex h-full flex-1 overflow-hidden">
         <div class="flex h-full flex-1">
           <div class="relative flex min-w-[480px] flex-1 flex-col overflow-hidden">
-            <!-- 顶部：助手名称 + 返回按钮 -->
-            <div class="flex items-center gap-2 border-b border-gray-200 px-4 py-2 dark:border-gray-800">
+            <!-- 顶部：返回 + 助手名称 -->
+            <div class="flex items-center gap-1.5 px-3 py-1.5">
               <button
-                class="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+                class="flex items-center gap-1 rounded-md px-1.5 py-1 text-xs text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
                 @click="handleBackToSelector"
               >
-                <UIcon name="i-heroicons-arrow-left" class="h-4 w-4" />
+                <UIcon name="i-heroicons-chevron-left" class="h-3.5 w-3.5" />
+                <span>{{ assistantStore.selectedAssistant?.name || t('ai.assistant.fallbackName') }}</span>
               </button>
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ assistantStore.selectedAssistant?.name || t('ai.assistant.fallbackName') }}
-              </span>
             </div>
         <!-- 消息列表 -->
         <div ref="messagesContainer" class="min-h-0 flex-1 overflow-y-auto p-4">
           <div ref="conversationContentRef" class="mx-auto max-w-3xl space-y-4">
+            <!-- 助手欢迎卡片（仅在无消息时展示，点击可编辑配置） -->
+            <div
+              v-if="showWelcomeCard && welcomeInfo.name"
+              class="cursor-pointer rounded-lg border border-gray-200 px-4 py-3 transition-colors hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800/50"
+              @click="handleConfigureAssistant(assistantStore.selectedAssistant!.id)"
+            >
+              <h4 class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
+                {{ welcomeInfo.name }}
+              </h4>
+              <p class="line-clamp-2 text-xs leading-relaxed text-gray-400 dark:text-gray-500">
+                {{ welcomeInfo.preview }}
+              </p>
+            </div>
+
             <!-- 对话截屏按钮 -->
             <div v-if="qaPairs.length > 0 && !isAIThinking" class="flex justify-end">
               <CaptureButton
@@ -466,8 +481,8 @@ watch(
           </button>
         </Transition>
 
-        <!-- 预设问题气泡（仅在对话为空且无消息时显示） -->
-        <div v-if="messages.length <= 1 && !isAIThinking" class="px-4 pb-2">
+        <!-- 预设问题气泡（仅在对话为空时显示） -->
+        <div v-if="messages.length === 0 && !isAIThinking" class="px-4 pb-2">
           <div class="mx-auto max-w-3xl">
             <PresetQuestions
               :questions="currentPresetQuestions"
@@ -493,6 +508,7 @@ watch(
               :agent-status="agentStatus"
               :has-l-l-m-config="hasLLMConfig"
               :is-checking-config="isCheckingConfig"
+              :current-conversation-id="currentConversationId"
             />
           </div>
         </div>

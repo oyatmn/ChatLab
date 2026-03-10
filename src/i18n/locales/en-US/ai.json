@@ -11,8 +11,7 @@
   "chat": {
     "welcome": {
       "configReady": "✅ AI service is configured and ready!",
-      "configNeeded": "**Note**: Please configure AI service in Settings (sidebar bottom) before using ⚙️",
-      "message": "👋 Hi! I'm your AI assistant, here to help you explore the chat history of \"{sessionName}\".\n\nYou can ask me things like:\n- What interesting topics have people been discussing lately?\n- Who is the most active person in this chat?\n- Find me the conversations about travel plans\n\n{configHint}"
+      "configNeeded": "**Note**: Please configure AI service in Settings (sidebar bottom) before using ⚙️"
     },
     "capture": "Capture Chat",
     "scrollToBottom": "Back to Bottom",
@@ -110,6 +109,10 @@
         }
       },
       "tokenUsageTitle": "Total token usage in this session",
+      "export": {
+        "label": "Export",
+        "title": "Export current conversation"
+      },
       "log": {
         "label": "Logs",
         "title": "Open current AI log file",
@@ -202,12 +205,14 @@
       "title": "Choose an assistant to start",
       "subtitle": "Each assistant specializes in different types of analysis tasks. Pick the one that best fits your needs.",
       "noAssistants": "No assistants available for this context",
-      "manage": "Manage Assistants"
+      "manage": "Manage Assistants",
+      "addNew": "New Assistant"
     },
     "config": {
       "viewTitle": "View Config",
       "createTitle": "New Assistant",
       "editTitle": "Assistant Config",
+      "betaWarning": "This feature is in beta. Configuration logic may change, so please back up your prompts.",
       "tabs": {
         "basic": "Basic",
         "tools": "Tools"

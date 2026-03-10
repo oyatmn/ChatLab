@@ -11,8 +11,7 @@
   "chat": {
     "welcome": {
       "configReady": "✅ AI 服务已配置，可以开始对话了！",
-      "configNeeded": "**注意**：使用前请先在侧边栏底部的「设置」中配置 AI 服务 ⚙️",
-      "message": "👋 你好！我是 AI 助手，可以帮你探索「{sessionName}」的聊天记录。\n\n你可以这样问我：\n- 大家最近聊了什么有趣的话题\n- 谁是群里最活跃的人\n- 帮我找一下群里讨论买房的记录\n\n{configHint}"
+      "configNeeded": "**注意**：使用前请先在侧边栏底部的「设置」中配置 AI 服务 ⚙️"
     },
     "capture": "截屏对话",
     "scrollToBottom": "返回底部",
@@ -110,6 +109,10 @@
         }
       },
       "tokenUsageTitle": "本次会话累计 Token 使用量",
+      "export": {
+        "label": "导出",
+        "title": "导出当前对话"
+      },
       "log": {
         "label": "日志",
         "title": "打开当前 AI 日志文件",
@@ -202,12 +205,14 @@
       "title": "选择一个助手开始对话",
       "subtitle": "每个助手擅长不同类型的分析任务，选择最适合你需求的助手",
       "noAssistants": "当前场景暂无可用助手",
-      "manage": "管理助手"
+      "manage": "管理助手",
+      "addNew": "新增助手"
     },
     "config": {
       "viewTitle": "查看配置",
       "createTitle": "新建助手",
       "editTitle": "助手配置",
+      "betaWarning": "当前处于测试阶段，配置逻辑后续可能调整，请备份好提示词和相关配置。",
       "tabs": {
         "basic": "基础配置",
         "tools": "工具管理"

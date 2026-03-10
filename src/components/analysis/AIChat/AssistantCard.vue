@@ -27,7 +27,7 @@ const emit = defineEmits<{
       class="absolute right-2 top-2 rounded-lg p-1.5 text-gray-400 opacity-0 transition-all hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100 dark:hover:bg-gray-700 dark:hover:text-gray-300"
       @click.stop="emit('configure', assistant.id)"
     >
-      <UIcon name="i-heroicons-cog-6-tooth" class="h-4 w-4" />
+      <UIcon name="i-heroicons-pencil-square" class="h-4 w-4" />
     </button>
 
     <!-- 名称 -->

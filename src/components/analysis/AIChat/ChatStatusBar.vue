@@ -6,6 +6,7 @@ import { useToast } from '@nuxt/ui/runtime/composables/useToast.js'
 import { usePromptStore } from '@/stores/prompt'
 import { useLayoutStore } from '@/stores/layout'
 import { useLLMStore } from '@/stores/llm'
+import { exportConversation, type ExportFormat } from '@/utils/conversationExport'
 import type { AgentRuntimeStatus } from '@electron/shared/types'
 
 const { t, locale } = useI18n()
@@ -18,6 +19,7 @@ const props = defineProps<{
   agentStatus?: AgentRuntimeStatus | null
   hasLLMConfig: boolean
   isCheckingConfig: boolean
+  currentConversationId?: string | null
 }>()
 
 // Store
@@ -140,6 +142,84 @@ async function switchModelConfig(configId: string) {
 function openModelSettings() {
   isModelPopoverOpen.value = false
   layoutStore.openSettingAt('ai', 'model')
+}
+
+// 导出当前对话
+const isExporting = ref(false)
+
+async function handleExportConversation() {
+  if (isExporting.value || !props.currentConversationId) return
+
+  isExporting.value = true
+  try {
+    const [conv, messages] = await Promise.all([
+      window.aiApi.getConversation(props.currentConversationId),
+      window.aiApi.getMessages(props.currentConversationId),
+    ])
+
+    if (!conv || messages.length === 0) {
+      toast.add({
+        title: t('ai.chat.conversation.export.noMessages'),
+        icon: 'i-heroicons-exclamation-triangle',
+        color: 'warning',
+        duration: 2000,
+      })
+      return
+    }
+
+    const format = (aiGlobalSettings.value.exportFormat || 'markdown') as ExportFormat
+    const title = conv.title || t('ai.chat.conversation.newChat')
+    const labels = {
+      createdAt: t('ai.chat.conversation.export.createdAt'),
+      user: t('ai.chat.conversation.export.user'),
+      assistant: t('ai.chat.conversation.export.assistant'),
+    }
+    const messagesWithMs = messages.map((msg) => ({
+      ...msg,
+      timestamp: msg.timestamp * 1000,
+    }))
+
+    const result = await exportConversation(title, messagesWithMs, conv.createdAt * 1000, format, labels)
+
+    if (result.success && result.filePath) {
+      const filename = result.filePath.split('/').pop() || result.filePath
+      const exportedFilePath = result.filePath
+      toast.add({
+        title: t('common.exportSuccess'),
+        description: filename,
+        icon: 'i-heroicons-check-circle',
+        color: 'primary',
+        duration: 2000,
+        actions: [
+          {
+            label: t('common.openFolder'),
+            onClick: () => {
+              window.cacheApi.showInFolder(exportedFilePath)
+            },
+          },
+        ],
+      })
+    } else {
+      toast.add({
+        title: t('common.exportFailed'),
+        description: result.error,
+        icon: 'i-heroicons-x-circle',
+        color: 'error',
+        duration: 2000,
+      })
+    }
+  } catch (error) {
+    console.error('导出对话失败：', error)
+    toast.add({
+      title: t('common.exportFailed'),
+      description: String(error),
+      icon: 'i-heroicons-x-circle',
+      color: 'error',
+      duration: 2000,
+    })
+  } finally {
+    isExporting.value = false
+  }
 }
 
 // 打开当前 AI 日志文件并定位到文件
@@ -323,6 +403,16 @@ async function openAiLogFile() {
         <UIcon name="i-heroicons-adjustments-horizontal" class="h-3.5 w-3.5" />
         <span class="hidden lg:inline">{{ t('ai.chat.statusBar.messageLimit.label') }}</span>
         <span>{{ aiGlobalSettings.maxMessagesPerRequest }}</span>
+      </button>
+      <!-- 导出按钮 -->
+      <button
+        class="flex shrink-0 items-center gap-1 rounded-md px-1.5 py-1 text-xs text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+        :title="t('ai.chat.statusBar.export.title')"
+        :disabled="isExporting || !currentConversationId"
+        @click="handleExportConversation"
+      >
+        <UIcon name="i-heroicons-arrow-down-tray" class="h-3.5 w-3.5" />
+        <span class="hidden xl:inline">{{ t('ai.chat.statusBar.export.label') }}</span>
       </button>
       <!-- 日志按钮 -->
       <button

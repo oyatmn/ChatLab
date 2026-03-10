@@ -350,17 +350,23 @@ function closeModal() {
     <template #content>
       <div class="p-6">
         <!-- Header -->
-        <div class="mb-4 flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-            {{
-              readonly
-                ? t('ai.assistant.config.viewTitle')
-                : isCreateMode
-                  ? t('ai.assistant.config.createTitle')
-                  : t('ai.assistant.config.editTitle')
-            }}
-          </h2>
-          <UButton icon="i-heroicons-x-mark" variant="ghost" size="sm" @click="closeModal" />
+        <div class="mb-4 flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{
+                readonly
+                  ? t('ai.assistant.config.viewTitle')
+                  : isCreateMode
+                    ? t('ai.assistant.config.createTitle')
+                    : t('ai.assistant.config.editTitle')
+              }}
+            </h2>
+            <!-- 测试阶段提示：仅在新建/编辑模式展示，查看模式不显示 -->
+            <p v-if="!readonly" class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+              {{ t('ai.assistant.config.betaWarning') }}
+            </p>
+          </div>
+          <UButton icon="i-heroicons-x-mark" variant="ghost" size="sm" class="shrink-0" @click="closeModal" />
         </div>
 
         <!-- Loading -->
